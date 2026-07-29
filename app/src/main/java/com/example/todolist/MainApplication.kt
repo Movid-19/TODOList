@@ -5,16 +5,17 @@ import androidx.room.Room
 import com.example.todolist.db.TodoDatabase
 
 class MainApplication : Application() {
-        companion object{
-            lateinit var todoDatabase: TodoDatabase
-        }
+    companion object {
+        lateinit var todoDatabase: TodoDatabase
+    }
 
     override fun onCreate() {
         super.onCreate()
-      todoDatabase = Room.databaseBuilder(
+        todoDatabase = Room.databaseBuilder(
             applicationContext,
             TodoDatabase::class.java,
             TodoDatabase.NAME
-        ).build()
+        )
+            .build()
     }
 }
