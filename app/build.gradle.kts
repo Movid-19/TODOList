@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp") version "2.3.10"
-
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -14,6 +14,7 @@ android {
     defaultConfig {
         applicationId = "com.example.todolist"
         minSdk = 35
+        //noinspection OldTargetApi
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -46,6 +47,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -70,5 +72,13 @@ dependencies {
     // If this project only uses Java source, use the Java annotationProcessor
     // No additional plugins are necessary
     annotationProcessor(libs.androidx.room.compiler)
+    // Firebase BoM (controls all Firebase library versions)
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
 
+    // Firebase Auth & Firestore
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    // Google Sign-In SDK
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
 }

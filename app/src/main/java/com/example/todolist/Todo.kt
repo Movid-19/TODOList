@@ -1,14 +1,13 @@
 package com.example.todolist
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import com.google.firebase.firestore.PropertyName
 import java.util.Date
 
-@Entity
 data class Todo(
-    @PrimaryKey(autoGenerate = true)
-    var id: Int = 0,
-    var title: String,
-    var createdAt: Date,
-    var isDone: Boolean = false
+    var title: String = "",
+    var createdAt: Date = Date(),
+    @get:PropertyName("isDone")
+    @set:PropertyName("isDone")
+    var isDone: Boolean = false,
+    var id: String = ""
 )
