@@ -9,5 +9,6 @@ data class Todo(
     @get:PropertyName("isDone")
     @set:PropertyName("isDone")
     var isDone: Boolean = false,
+    var dueDate: Date? = null,
     var id: String = ""
 )

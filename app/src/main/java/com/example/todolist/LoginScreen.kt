@@ -41,6 +41,7 @@ fun LoginScreen(authViewModel: AuthViewModel) {
                     val account = task.getResult(ApiException::class.java)
                     account?.idToken?.let { token ->
                         authViewModel.signInWithGoogle(token)
+                        Toast.makeText(context, "Welcome ${account.displayName}!", Toast.LENGTH_SHORT).show()
                     } ?: Toast.makeText(context, "ID Token is null", Toast.LENGTH_SHORT).show()
                 } catch (e: ApiException) {
                     val msg = when (e.statusCode) {

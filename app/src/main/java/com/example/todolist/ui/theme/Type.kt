@@ -1,15 +1,17 @@
 package com.example.todolist.ui.theme
 
-// ✅ Import the app's R class
-import com.example.todolist.R
 import androidx.compose.material3.Typography as MaterialTypography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.DeviceFontFamilyName
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-val ComicSans = FontFamily(Font(R.font.comic_sans))   // <-- lowercase 'font', not 'Font'
+// 🎨 Use system Comic Sans (falls back to default if not available)
+val ComicSans = FontFamily(
+    Font(DeviceFontFamilyName("Comic Sans MS"))
+)
 
 val Typography = MaterialTypography(
     displayLarge = TextStyle(fontFamily = ComicSans, fontWeight = FontWeight.Normal, fontSize = 57.sp),

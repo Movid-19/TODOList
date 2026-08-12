@@ -40,10 +40,11 @@ fun AppNavigation() {
     if (user == null) {
         LoginScreen(authViewModel)
     } else {
+        val currentUser = user
         val todoViewModel: TodoViewModel = viewModel(
-            key = user!!.uid
+            key = currentUser?.uid
         )
-        Todolistpage(
+        MainScreen(
             viewModel = todoViewModel,
             onSignOut = { authViewModel.signOut() }
         )
