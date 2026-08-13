@@ -44,6 +44,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 isLoading.value = false
                 if (task.isSuccessful) {
                     _user.value = auth.currentUser
+                    Log.d("AuthVM", "Sign-in successful: ${auth.currentUser?.email}")
                 } else {
                     Log.e("AuthVM", "Sign-in failed", task.exception)
                     _user.value = null
@@ -66,6 +67,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     companion object {
-        const val WEB_CLIENT_ID = "923694756694-keoffn0v6lf9996b3eou17skjgsquqeu.apps.googleusercontent.com"
+        const val WEB_CLIENT_ID = "923694756694-c7rur84f3o2h5opf12t01jq82oe6cg9a.apps.googleusercontent.com"
     }
 }
