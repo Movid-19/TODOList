@@ -1,4 +1,4 @@
-package com.example.todolist
+package com.example.todolist.viewmodel
 
 import android.app.Application
 import android.util.Log
@@ -44,7 +44,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 isLoading.value = false
                 if (task.isSuccessful) {
                     _user.value = auth.currentUser
-                    Log.d("AuthVM", "Sign-in successful: ${auth.currentUser?.email}")
                 } else {
                     Log.e("AuthVM", "Sign-in failed", task.exception)
                     _user.value = null

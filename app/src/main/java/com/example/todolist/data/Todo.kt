@@ -1,4 +1,4 @@
-package com.example.todolist
+package com.example.todolist.data
 
 import com.google.firebase.firestore.PropertyName
 import java.util.Date
@@ -10,5 +10,6 @@ data class Todo(
     @set:PropertyName("isDone")
     var isDone: Boolean = false,
     var dueDate: Date? = null,
+    var reminderTime: Long? = null,
     var id: String = ""
 )

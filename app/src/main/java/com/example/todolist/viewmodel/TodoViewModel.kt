@@ -1,12 +1,18 @@
-package com.example.todolist
+package com.example.todolist.viewmodel
 
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.todolist.data.Todo
+import com.example.todolist.notification.ReminderScheduler
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,12 +25,13 @@ import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.util.Date
 
-class TodoViewModel : ViewModel() {
+@OptIn(FlowPreview::class)
+class TodoViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = Firebase.firestore
     private val auth = FirebaseAuth.getInstance()
 
-    private var todoCollection: com.google.firebase.firestore.CollectionReference? = null
+    private var todoCollection: CollectionReference? = null
 
     private val _todos = MutableStateFlow<List<Todo>>(emptyList())
 
@@ -34,7 +41,6 @@ class TodoViewModel : ViewModel() {
     private val _searchQueryRaw = MutableStateFlow("")
     val searchQuery = _searchQueryRaw.asStateFlow()
 
-
     private val _searchQueryDebounced = _searchQueryRaw
         .debounce(300)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
@@ -43,7 +49,7 @@ class TodoViewModel : ViewModel() {
     val sortType = _sortType.asStateFlow()
 
     private var deletedTask: Todo? = null
-    private var deleteJob: kotlinx.coroutines.Job? = null
+    private var deleteJob: Job? = null
 
     private val filteredTodos = combine(_todos, _filterType, _searchQueryDebounced, _sortType) {
             allTodos, filter, query, sort ->
@@ -102,6 +108,7 @@ class TodoViewModel : ViewModel() {
         }
     }
 
+
     private fun isToday(date: Date?): Boolean {
         if (date == null) return false
         val today = Calendar.getInstance()
@@ -136,6 +143,7 @@ class TodoViewModel : ViewModel() {
         }
         return date.before(today.time)
     }
+
     fun setFilterType(filter: FilterType) {
         _filterType.value = filter
     }
@@ -148,8 +156,19 @@ class TodoViewModel : ViewModel() {
         _sortType.value = sort
     }
 
-    fun addTodo(title: String, dueDate: Date?) {
-        todoCollection?.add(Todo(title = title, createdAt = Date(), dueDate = dueDate))
+    fun addTodo(title: String, dueDate: Date?, reminderTime: Long?) {
+        val newTodo = Todo(
+            title = title,
+            createdAt = Date(),
+            dueDate = dueDate,
+            reminderTime = reminderTime
+        )
+        todoCollection?.add(newTodo)?.addOnSuccessListener { docRef ->
+            val id = docRef.id
+            reminderTime?.let { time ->
+                ReminderScheduler.schedule(getApplication(), id, title, time)
+            }
+        }
     }
 
     fun deleteTodoWithUndo(id: String, onUndoAvailable: (Todo) -> Unit) {
@@ -160,6 +179,7 @@ class TodoViewModel : ViewModel() {
         }
 
         deletedTask = taskToDelete
+        ReminderScheduler.cancel(getApplication(), id)
         todoCollection?.document(id)?.delete()
         onUndoAvailable(taskToDelete)
 
@@ -174,6 +194,10 @@ class TodoViewModel : ViewModel() {
         val task = deletedTask
         if (task != null) {
             todoCollection?.add(task)
+            // Restore reminder if it had one
+            task.reminderTime?.let { time ->
+                ReminderScheduler.schedule(getApplication(), task.id, task.title, time)
+            }
             deletedTask = null
             deleteJob?.cancel()
             deleteJob = null
@@ -181,11 +205,26 @@ class TodoViewModel : ViewModel() {
     }
 
     fun deleteTodo(id: String) {
+        ReminderScheduler.cancel(getApplication(), id)
         todoCollection?.document(id)?.delete()
     }
 
     fun editTodo(id: String, newTitle: String) {
         todoCollection?.document(id)?.update("title", newTitle)
+    }
+
+    fun updateReminder(id: String, newReminderTime: Long?) {
+        todoCollection?.document(id)?.update("reminderTime", newReminderTime)
+            ?.addOnSuccessListener {
+                // Cancel old and schedule new
+                ReminderScheduler.cancel(getApplication(), id)
+                newReminderTime?.let { time ->
+                    val task = _todos.value.find { it.id == id }
+                    task?.let {
+                        ReminderScheduler.schedule(getApplication(), id, it.title, time)
+                    }
+                }
+            }
     }
 
     fun toggleDone(id: String, currentDone: Boolean) {

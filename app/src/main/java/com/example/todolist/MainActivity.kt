@@ -1,5 +1,7 @@
 package com.example.todolist
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,11 +14,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.todolist.auth.LoginScreen
+import com.example.todolist.notification.NotificationHelper
+import com.example.todolist.ui.screens.MainScreen
 import com.example.todolist.ui.theme.TODOListTheme
+import com.example.todolist.viewmodel.AuthViewModel
+import com.example.todolist.viewmodel.TodoViewModel
+import com.example.todolist.viewmodel.TodoViewModelFactory
+import androidx.core.app.ActivityCompat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        NotificationHelper.createChannel(this)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                100
+            )
+        }
+
         setContent {
             TODOListTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -42,7 +62,8 @@ fun AppNavigation() {
     } else {
         val currentUser = user
         val todoViewModel: TodoViewModel = viewModel(
-            key = currentUser?.uid
+            key = currentUser?.uid,
+            factory = TodoViewModelFactory(application)
         )
         MainScreen(
             viewModel = todoViewModel,
