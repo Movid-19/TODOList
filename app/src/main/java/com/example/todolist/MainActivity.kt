@@ -11,6 +11,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -22,6 +25,7 @@ import com.example.todolist.viewmodel.AuthViewModel
 import com.example.todolist.viewmodel.TodoViewModel
 import com.example.todolist.viewmodel.TodoViewModelFactory
 import androidx.core.app.ActivityCompat
+import com.example.todolist.auth.SignUpScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,9 +61,9 @@ fun AppNavigation() {
 
     val user by authViewModel.user.collectAsState()
 
-    if (user == null) {
-        LoginScreen(authViewModel)
-    } else {
+    var showSignUp by remember { mutableStateOf(false) }
+
+    if (user != null) {
         val currentUser = user
         val todoViewModel: TodoViewModel = viewModel(
             key = currentUser?.uid,
@@ -69,5 +73,17 @@ fun AppNavigation() {
             viewModel = todoViewModel,
             onSignOut = { authViewModel.signOut() }
         )
+    } else {
+        if (showSignUp) {
+            SignUpScreen(
+                authViewModel = authViewModel,
+                onNavigateToLogin = { showSignUp = false }
+            )
+        } else {
+            LoginScreen(
+                authViewModel = authViewModel,
+                onNavigateToSignUp = { showSignUp = true }
+            )
+        }
     }
 }
